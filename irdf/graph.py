@@ -38,7 +38,7 @@ def make_node(n, g, lang=None, p_filter=(), labels=()):
     return {"data": data}
 
 
-def make_graph_obj(g, p_filter=None, lang="en", label_path=None):
+def make_graph_obj(g, p_filter=None, lang="en", label_path=None, max_edge_count=4):
     label_path = label_path or "rdfs:label"
     labels = {
         b["s"]: str(b["l"])
@@ -59,7 +59,7 @@ def make_graph_obj(g, p_filter=None, lang="en", label_path=None):
                     "target": hex(abs(hash(o))),
                     "label": labels.get(p, p.n3(g.namespace_manager)),
                 }
-                if p_count[p] > 4:
+                if p_count[p] > max_edge_count:
                     data["label"] += f" (+ {p_count[p]-1})"
                     p_count[p] = 0
                 edges.append({"data": data})
@@ -118,6 +118,9 @@ def graph(
     p_filter: typing.Collection[str] = (),
     lang: typing.Optional[str] = "en",
     label_path: typing.Optional[str] = None,
+    max_edge_count: int = 4,
 ):
-    data = make_graph_obj(g, p_filter=p_filter, label_path=label_path)
+    data = make_graph_obj(
+        g, p_filter=p_filter, label_path=label_path, max_edge_count=max_edge_count
+    )
     return make_widget(data)
