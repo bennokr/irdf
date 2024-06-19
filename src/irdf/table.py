@@ -1,5 +1,6 @@
 import rdflib
 import html
+import warnings
 
 import pandas as pd
 from itables import init_notebook_mode, show
@@ -47,7 +48,10 @@ def table(g: rdflib.Graph, max_len=50):
     <button style="position:absolute; z-index:999" onclick="reset(this)">Clear search</button>
     """
     df = pd.DataFrame(list(g), columns=["s", "p", "o"])
-    df = df.applymap(make_html, nsm=g.namespace_manager, max_len=max_len)  # type: ignore
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        df = df.applymap(make_html, nsm=g.namespace_manager, max_len=max_len)  # type: ignore
     return show(
         df,
         column_filters="header",

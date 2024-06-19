@@ -110,6 +110,7 @@ def make_widget(data):
             },
         ]
     )
+    cytoscapeobj.on("node", "mouseup", lambda x: cytoscapeobj.relayout())
     return cytoscapeobj
 
 
