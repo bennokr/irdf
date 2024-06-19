@@ -10,8 +10,13 @@ def make_node(n, g, lang=None, p_filter=(), labels=()):
     labels = dict(labels)
     n3 = n.n3(g.namespace_manager)
     data = {"id": hex(abs(hash(n)))}
+    classes = []
     if not n3.startswith("<"):
-        data["label"] = labels.get(n, n3)
+        if isinstance(n, rdflib.BNode):
+            n3 = "_"
+            classes.append("bnode")
+        else:
+            data["label"] = labels.get(n, n3)
     else:
         n3 = str(n)
 
@@ -35,7 +40,10 @@ def make_node(n, g, lang=None, p_filter=(), labels=()):
 
     if any(ext in n.lower() for ext in [".jpg", ".svg", ".png"]):
         data["image"] = requests.get(n, stream=True).url
-    return {"data": data}
+    out = {"data": data}
+    if classes:
+        out["classes"] = " ".join(classes)
+    return out
 
 
 def make_graph_obj(g, p_filter=None, lang="en", label_path=None, max_edge_count=4):
@@ -50,7 +58,7 @@ def make_graph_obj(g, p_filter=None, lang="en", label_path=None, max_edge_count=
     for s, p, o in g:
         if p_filter and not any(f in str(p) for f in p_filter):
             continue
-        if isinstance(o, rdflib.URIRef):
+        if isinstance(o, rdflib.URIRef) or isinstance(o, rdflib.BNode):
             if p_count[p]:
                 nodes.add(s)
                 nodes.add(o)
@@ -106,6 +114,12 @@ def make_widget(data):
                     "color": "white",
                     "font-size": "8pt",
                     "text-outline-width": 1,
+                },
+            },
+            {
+                "selector": "node.bnode",
+                "css": {
+                    "background-color": "gray",
                 },
             },
         ]
